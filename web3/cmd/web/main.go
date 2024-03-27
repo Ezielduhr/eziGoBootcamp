@@ -2,15 +2,30 @@ package main
 
 import (
 	"fmt"
+	scs "github.com/alexedwards/scs/v2"
 	"log"
 	"net/http"
-	"web3/pkg/config"
+	"encoding/gob"
+	"time"
+	config "web3/pkg/config"
 	handlers "web3/pkg/handlers"
-
+	"web3/models"
 )
 
-func main(){
-	var app config.AppConfig
+var sessionManager *scs.SessionManager
+var app config.AppConfig
+
+func main() {
+
+	gob.Register(models.Article{})
+
+	sessionManager = scs.New()
+	sessionManager.Lifetime = 24 * time.Hour
+	sessionManager.Cookie.Persist = true
+	sessionManager.Cookie.Secure = false
+	sessionManager.Cookie.SameSite = http.SameSiteLaxMode
+	app.Session = sessionManager
+
 	repo := handlers.NewRepo(&app)
 	handlers.NewHandlers(repo)
 
